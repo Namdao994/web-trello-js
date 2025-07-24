@@ -31,7 +31,7 @@ const Profiles = () => {
           aria-expanded={open ? 'true' : undefined}
           onClick={handleClick}
         >
-          <Avatar alt="avatar" sx={{ width: '30px', height: '30px' }}>
+          <Avatar alt="avatar" sx={{ width: 34, height: 34 }}>
             H
           </Avatar>
         </IconButton>

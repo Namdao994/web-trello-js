@@ -16,10 +16,10 @@ import TextField from '@mui/material/TextField'
 import Badge from '@mui/material/Badge'
 import Tooltip from '@mui/material/Tooltip'
 import Profiles from './Menus/Profiles'
+import LibraryAddIcon from '@mui/icons-material/LibraryAdd'
 const AppBar = () => {
   return (
     <Box
-      px={2}
       sx={{
         width: '100%',
         height: theme => theme.trello.appBarHeight,
@@ -27,6 +27,7 @@ const AppBar = () => {
         alignItems: 'center',
         justifyContent: 'space-between',
         gap: 2,
+        paddingX: 2,
         overflowX: 'auto',
       }}
     >
@@ -63,7 +64,9 @@ const AppBar = () => {
           <Recent />
           <Starred />
           <Templates />
-          <Button variant="outlined">Create</Button>
+          <Button variant="outlined" startIcon={<LibraryAddIcon />}>
+            Create
+          </Button>
         </Box>
       </Box>
       <Box
