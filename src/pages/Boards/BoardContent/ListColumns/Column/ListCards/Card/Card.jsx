@@ -19,6 +19,7 @@ const Card = ({ card }) => {
     transform: CSS.Translate.toString(transform),
     transition,
     opacity: isDragging ? 0.5 : undefined,
+    border: isDragging ? '1px solid #2ecc71' : undefined,
   }
   const shouldShowCardActions = () =>
     !!card?.memberIds?.length || !!card?.comments?.length || !!card?.attachments?.length
