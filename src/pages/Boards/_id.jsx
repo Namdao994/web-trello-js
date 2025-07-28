@@ -19,8 +19,8 @@ const Board = () => {
   return (
     <Container sx={{ height: '100vh' }} disableGutters maxWidth={false}>
       <AppBar />
-      <BoardBar board={board} />
-      <BoardContent board={board} />
+      <BoardBar board={mockData.board} />
+      <BoardContent board={mockData.board} />
     </Container>
   )
 }
