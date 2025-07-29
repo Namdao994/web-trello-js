@@ -30,7 +30,7 @@ const ACTIVE_DRAG_ITEM_TYPE = {
   CARD: 'ACTIVE_DRAG_ITEM_TYPE_CARD',
 }
 
-const BoardContent = ({ board, createNewColumn, createNewCard }) => {
+const BoardContent = ({ board, createNewColumn, createNewCard, moveColumns }) => {
   const [orderedColumns, setOrderedColumns] = useState([])
   const [activeDragItemId, setActiveDragItemId] = useState(null)
   const [activeDragItemType, setActiveDragItemType] = useState(null)
@@ -236,6 +236,7 @@ const BoardContent = ({ board, createNewColumn, createNewCard }) => {
       const dndOrderedColumns = arrayMove(orderedColumns, oldColumnIndex, newColumnIndex)
       //gọi api
       // const dndOrderedColumnsIds = dndOrderedColumns.map(c => c._id)
+      moveColumns(dndOrderedColumns)
       setOrderedColumns(dndOrderedColumns)
     }
 
