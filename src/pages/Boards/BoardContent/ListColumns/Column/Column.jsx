@@ -17,7 +17,6 @@ import DeleteForeverIcon from '@mui/icons-material/DeleteForever'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import ListCards from './ListCards/ListCards'
 import Box from '@mui/material/Box'
-import { mapOrder } from '~/utils/sorts'
 import { useSortable } from '@dnd-kit/sortable'
 import CloseIcon from '@mui/icons-material/Close'
 import { CSS } from '@dnd-kit/utilities'
@@ -45,13 +44,13 @@ const Column = ({ column, createNewCard }) => {
   const handleClose = () => {
     setAnchorEl(null)
   }
-  const orderedCards = mapOrder(column?.cards, column?.cardOrderIds, '_id')
+  const orderedCards = column.cards
 
   const [openNewCardForm, setOpenNewCardForm] = useState(false)
 
   const toggleOpenNewCardForm = () => setOpenNewCardForm(!openNewCardForm)
   const [newCardTitle, setNewCardTitle] = useState('')
-  const addNewCard = async () => {
+  const addNewCard = () => {
     if (!newCardTitle) {
       toast.error('Please enter Card Title', { position: 'bottom-right' })
       return
@@ -62,7 +61,7 @@ const Column = ({ column, createNewCard }) => {
       columnId: column._id,
     }
     //...
-    await createNewCard(newCardData)
+    createNewCard(newCardData)
 
     toggleOpenNewCardForm(false)
     setNewCardTitle('')
