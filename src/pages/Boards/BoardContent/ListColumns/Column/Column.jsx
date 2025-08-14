@@ -23,7 +23,16 @@ import { CSS } from '@dnd-kit/utilities'
 import TextField from '@mui/material/TextField'
 import { toast } from 'react-toastify'
 import { useConfirm } from 'material-ui-confirm'
-const Column = ({ column, createNewCard, deleteColumnDetails }) => {
+import { createNewCardAPI, deleteColumnDetailsAPI } from '~/apis'
+import { useDispatch, useSelector } from 'react-redux'
+import { cloneDeep } from 'lodash'
+import {
+  selectCurrentActiveBoard,
+  updateCurrentActiveBoard,
+} from '~/redux/activeBoard/activeBoardSlice'
+const Column = ({ column }) => {
+  const board = useSelector(selectCurrentActiveBoard)
+  const dispatch = useDispatch()
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: column._id,
     data: { ...column },
@@ -51,7 +60,7 @@ const Column = ({ column, createNewCard, deleteColumnDetails }) => {
 
   const toggleOpenNewCardForm = () => setOpenNewCardForm(!openNewCardForm)
   const [newCardTitle, setNewCardTitle] = useState('')
-  const addNewCard = () => {
+  const addNewCard = async () => {
     if (!newCardTitle) {
       toast.error('Please enter Card Title', { position: 'bottom-right' })
       return
@@ -61,8 +70,21 @@ const Column = ({ column, createNewCard, deleteColumnDetails }) => {
       title: newCardTitle,
       columnId: column._id,
     }
-    //...
-    createNewCard(newCardData)
+    const createdCard = await createNewCardAPI({ ...newCardData, boardId: board._id })
+    //Tương tự hàm creatNewColumn
+    // const newBoard = { ...board }
+    const newBoard = cloneDeep(board)
+    const columnToUpdate = newBoard.columns.find(column => column._id === createdCard.columnId)
+    if (columnToUpdate) {
+      if (columnToUpdate.cards.some(card => card.FE_PlaceholderCard)) {
+        columnToUpdate.cards = [createdCard]
+        columnToUpdate.cardOrderIds = [createdCard._id]
+      } else {
+        columnToUpdate.cards.push(createdCard)
+        columnToUpdate.cardOrderIds.push(createdCard._id)
+      }
+    }
+    dispatch(updateCurrentActiveBoard(newBoard))
 
     toggleOpenNewCardForm(false)
     setNewCardTitle('')
@@ -70,15 +92,34 @@ const Column = ({ column, createNewCard, deleteColumnDetails }) => {
   // xử lí xóa nhiều column
   const confirmDeleteColumn = useConfirm()
   const handleDeleteColumn = async () => {
-    try {
-      await confirmDeleteColumn({
-        title: 'Delete Column?',
-        description: 'This action will permanently delete your Column adn its Cards! Are you sure?',
-        confirmationText: 'Confirm',
-        cancellationText: 'Cancel',
+    // try {
+    //   await confirmDeleteColumn({
+    //     title: 'Delete Column?',
+    //     description: 'This action will permanently delete your Column adn its Cards! Are you sure?',
+    //     confirmationText: 'Confirm',
+    //     cancellationText: 'Cancel',
+    //   })
+    //   deleteColumnDetails(column._id)
+    // } catch (error) {}
+    confirmDeleteColumn({
+      title: 'Delete Column?',
+      description: 'This action will permanently delete your Column adn its Cards! Are you sure?',
+      confirmationText: 'Confirm',
+      cancellationText: 'Cancel',
+    })
+      .then(() => {
+        //Tương tự đoạn xử lí chỗ hàm moveColumns nên không ảnh hưởng redux tookit Immuatbility gì ở đây cả
+        const newBoard = { ...board }
+        newBoard.columns = newBoard.columns.filter(c => c._id !== column._id)
+        newBoard.columnOrderIds = newBoard.columnOrderIds.filter(_id => _id !== column._id)
+        dispatch(updateCurrentActiveBoard(newBoard))
+
+        //API
+        deleteColumnDetailsAPI(column._id).then(res => {
+          toast.success(res?.deleteResult)
+        })
       })
-      deleteColumnDetails(column._id)
-    } catch (error) {}
+      .catch(() => {})
   }
 
   return (
