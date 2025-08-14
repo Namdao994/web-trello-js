@@ -7,12 +7,20 @@ import { useState } from 'react'
 import TextField from '@mui/material/TextField'
 import CloseIcon from '@mui/icons-material/Close'
 import { toast } from 'react-toastify'
-const ListColumns = ({ columns, createNewColumn, createNewCard, deleteColumnDetails }) => {
+import { createNewColumnAPI } from '~/apis'
+import { generatePlaceHolderCard } from '~/utils/formatters'
+import { useDispatch, useSelector } from 'react-redux'
+import { cloneDeep } from 'lodash'
+import { selectCurrentActiveBoard } from '~/redux/activeBoard/activeBoardSlice'
+
+const ListColumns = ({ columns }) => {
+  const board = useSelector(selectCurrentActiveBoard)
+  const dispatch = useDispatch()
   const [openNewColumnForm, setOpenNewColumnForm] = useState(false)
 
   const toggleOpenNewColumnForm = () => setOpenNewColumnForm(!openNewColumnForm)
   const [newColumnTitle, setNewColumnTitle] = useState('')
-  const addNewColumn = () => {
+  const addNewColumn = async () => {
     if (!newColumnTitle) {
       toast.error('Please Enter column title')
       return
@@ -21,7 +29,27 @@ const ListColumns = ({ columns, createNewColumn, createNewCard, deleteColumnDeta
     const newColumnData = {
       title: newColumnTitle,
     }
-    createNewColumn(newColumnData)
+
+    const createdColumn = await createNewColumnAPI({ ...newColumnData, boardId: board._id })
+    //Cập nhật lại state board
+    createdColumn.cards = [generatePlaceHolderCard(createdColumn)]
+    createdColumn.cardOrderIds = [generatePlaceHolderCard(createdColumn)._id]
+    /**
+     * Đoạn này sẽ dính lỗi object is not extensible bởi dù đã copy/clone ra giá trị newBoard nhưng bản chất của spred operator là Shallow copy/ Clone, nên dính rule Immuatability trong Redux toolkit khoong dùng được hàm Push(sửa giá trị trực tiếp), cách đơn giản nhanh gọn nhất là ở trường hợp này của chúng ta là dùng tới Deep clone/copy toàn bộ cái Board cho dễ hiểu và code ngắn gọn
+     */
+    // const newBoard = { ...board }
+    const newBoard = cloneDeep(board)
+    newBoard.columns.push(createdColumn)
+    newBoard.columnOrderIds.push(createdColumn._id)
+    /**
+     * Ngoài ra cách nữa là vẫn có thể dùng array.concat thay cho push như dóc của Redux tookit ở trên vì push như đã nói nó sẽ thay đổi giá trị mảng trược tipees, còng thằng conacat thì nó merge - ghép mảng lại và tạo ra một mảng mới để chúng ta gán lại giá trị nên không vấn đề gì
+     */
+    // const newBoard = {...board}
+    // newBoard.columns = newBoard.columns.concat([createdColumn]);
+    // newBoard.columnsOrderIds = newBoard.columnOrderIds.concat([createdColumn._id])
+
+    dispatch(updateCurrentActiveBoard(newBoard))
+
     toggleOpenNewColumnForm(false)
     setNewColumnTitle('')
   }
@@ -42,12 +70,7 @@ const ListColumns = ({ columns, createNewColumn, createNewCard, deleteColumnDeta
         }}
       >
         {columns?.map(column => (
-          <Column
-            key={column._id}
-            column={column}
-            createNewCard={createNewCard}
-            deleteColumnDetails={deleteColumnDetails}
-          />
+          <Column key={column._id} column={column} />
         ))}
 
         {/* Button Add new Column */}
